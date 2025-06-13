@@ -10,4 +10,7 @@ Jason's minimalistic buy/sell indicator:
 
 3) We want buy and sell signals at beginning of potential new trends  
  if bar closes above EMA and stochastic RSI has crossed below the 20: BUY  
- if bar closes below EMA and stochastic RSI has crossed above the 80: SHORT  
+ if bar closes below EMA and stochastic RSI has crossed above the 80: SHORT
+
+![image](https://github.com/user-attachments/assets/03c7f509-483b-440e-888b-8c55f9d1a772)
+
