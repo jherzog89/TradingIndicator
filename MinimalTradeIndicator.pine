@@ -1,0 +1,64 @@
+// This strategy has been created for illustration purposes only and should not be relied upon as a basis for buying, selling, or holding any asset or security.
+// Jason's minimalistic buy/sell indicator: 
+// 1) We want to cut out volatility noise of a green bar in a downtrend and a red bar in an uptrend:
+//  If the bar closes above the EMA color it green
+//  If the bar closes below the EMA color it red 
+
+//2) We want a early exit signals ('caution') if we are in a trade and the trend may reverse:
+//  if in an uptrend and stochastic rsi crosses while above 80 signal a caution potential reversal
+//  if in a downtrend and stochastic rsi crosses while below the 20 signal a caution potential reversal
+
+//3) We want buy and sell signals at beginning of new trends
+//  if bar closes above EMA and stochastic RSI has crossed below the 20: BUY
+//  if bar closes below EMA and stochastic RSI has crossed above the 80: SELL
+
+//@version=5
+indicator('Single EMA Color Candles with stoch', overlay=true)
+
+// INPUT:
+
+//Get fast ema input from user
+emaSuperFast = input.int(title='Super Fast EMA', defval=50, minval=1, maxval=9999)
+
+
+// CALCULATIONS:
+
+// Use the built-in function to calculate one EMA line
+superFastEMA = ta.ema(close, emaSuperFast)
+
+//Draw slow moving stochastic RSI
+smoothK = input.int(6, "K", minval=1)
+smoothD = input.int(6, "D", minval=1)
+lengthRSI = input.int(14, "RSI Length", minval=1)
+lengthStoch = input.int(14, "Stochastic Length", minval=1)
+src = input(close, title="RSI Source")
+rsi1 = ta.rsi(src, lengthRSI)
+k = ta.sma(ta.stoch(rsi1, rsi1, rsi1, lengthStoch), smoothK)
+d = ta.sma(k, smoothD)
+
+
+// PLOT:
+// Draw the EMA line on the chart
+plot(series=superFastEMA, color=color.new(color.orange, 0), linewidth=2)
+
+aboveEma = close > superFastEMA
+belowEma =  close < superFastEMA
+
+//If we are long or short and EMA crosses signal appropriate caution
+longCondition = ta.crossover(k, 20) and aboveEma
+shortCondition = ta.crossunder(k, 80)  and belowEma
+
+longCaution =  ta.crossover(k, d)  and not aboveEma
+shortCaution = ta.crossunder(k, d) and not belowEma
+
+alertcondition(longCondition, 'Buy')
+alertcondition(shortCondition, 'Sell')
+//alertcondition(longCaution or shortCaution, 'Caution') caution can be noisey for alerts
+
+//Plot data
+barcolor(aboveEma ? color.green : belowEma ? color.red : color.yellow)
+plotshape(longCondition, style=shape.labelup, location=location.belowbar, color=color.new(color.green, 0), text='buy', textcolor=color.new(color.black, 0))
+plotshape(shortCondition, style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 0), text='short', textcolor=color.new(color.black, 0))
+
+plotshape(longCaution, style=shape.labelup, location=location.belowbar, color=color.yellow, text="caution", textcolor=color.black)
+plotshape(shortCaution, style=shape.labeldown,location=location.abovebar, color=color.yellow, text="caution", textcolor=color.black)
